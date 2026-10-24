@@ -1,0 +1,21 @@
+body {
+  margin: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background: #f7f9fc;
+}
+
+.hero-section {
+  background: linear-gradient(135deg, #eef5ff 0%, #f8fbff 100%);
+}
+
+.card {
+  border-radius: 16px;
+}
+
+.btn {
+  border-radius: 10px;
+}
+
+.navbar {
+  box-shadow: 0 2px 14px rgba(0, 0, 0, 0.08);
+}
