@@ -18,22 +18,13 @@ const Navbar = () => {
         <div className="d-flex align-items-center gap-2 flex-wrap">
           {!user ? (
             <>
-              <Link className="btn btn-outline-light btn-sm" to="/login">
-                Login
-              </Link>
-              <Link className="btn btn-light btn-sm" to="/register">
-                Register
-              </Link>
+              <Link className="btn btn-outline-light btn-sm" to="/login">Login</Link>
+              <Link className="btn btn-light btn-sm" to="/register">Register</Link>
             </>
           ) : (
             <>
-              {user.role === 'student' && <Link className="btn btn-outline-light btn-sm" to="/student-dashboard">Dashboard</Link>}
-              {user.role === 'teacher' && <Link className="btn btn-outline-light btn-sm" to="/teacher-dashboard">Dashboard</Link>}
-              {user.role === 'admin' && <Link className="btn btn-outline-light btn-sm" to="/admin-dashboard">Dashboard</Link>}
-              <Link className="btn btn-outline-light btn-sm" to="/profile">Profile</Link>
-              <button className="btn btn-light btn-sm" onClick={handleLogout}>
-                Logout
-              </button>
+              <Link className="btn btn-outline-light btn-sm" to="/dashboard">Dashboard</Link>
+              <button className="btn btn-light btn-sm" onClick={handleLogout}>Logout</button>
             </>
           )}
         </div>

@@ -7,14 +7,12 @@ export const createMaterial = async (req, res) => {
       return res.status(400).json({ message: 'Please upload a valid material file.' });
     }
 
-    const { title, subject, description, visibility } = req.body;
-
+    const { title, subject, description } = req.body;
     if (!title || !subject || !description) {
       return res.status(400).json({ message: 'Title, subject and description are required.' });
     }
 
-    const baseUrl = process.env.BACKEND_URL || 'http://localhost:5000';
-    const fileUrl = `${baseUrl}/uploads/${req.file.filename}`;
+    const fileUrl = `${process.env.BACKEND_URL || 'http://localhost:5000'}/uploads/${req.file.filename}`;
 
     const material = await Material.create({
       title,
@@ -25,7 +23,7 @@ export const createMaterial = async (req, res) => {
       fileUrl,
       mimeType: req.file.mimetype,
       fileSize: req.file.size,
-      visibility: visibility || 'public',
+      visibility: 'public',
     });
 
     res.status(201).json({ message: 'Material uploaded successfully', material });
@@ -37,28 +35,14 @@ export const createMaterial = async (req, res) => {
 export const getMaterials = async (req, res) => {
   try {
     const { subject, search } = req.query;
-    const baseQuery = req.user
-      ? {
-          $or: [{ visibility: 'public' }, { uploadedBy: req.user.id }],
-        }
-      : { visibility: 'public' };
-
-    const filter = { ...baseQuery };
+    const filter = req.user ? { $or: [{ visibility: 'public' }, { uploadedBy: req.user.id }] } : { visibility: 'public' };
 
     if (subject) {
       filter.subject = new RegExp(subject, 'i');
     }
 
     if (search) {
-      filter.$and = [
-        {
-          $or: [
-            { title: new RegExp(search, 'i') },
-            { subject: new RegExp(search, 'i') },
-            { description: new RegExp(search, 'i') },
-          ],
-        },
-      ];
+      filter.$and = [{ $or: [{ title: new RegExp(search, 'i') }, { description: new RegExp(search, 'i') }, { subject: new RegExp(search, 'i') }] }];
     }
 
     const materials = await Material.find(filter)
@@ -67,23 +51,21 @@ export const getMaterials = async (req, res) => {
 
     res.json({ materials });
   } catch (error) {
-    res.status(500).json({ message: error.message || 'Unable to fetch materials' });
+    res.status(500).json({ message: error.message || 'Unable to load materials' });
   }
 };
 
 export const getMaterialById = async (req, res) => {
   try {
     const material = await Material.findById(req.params.id).populate('uploadedBy', 'name email role');
-
     if (!material) {
       return res.status(404).json({ message: 'Material not found' });
     }
 
     const isOwner = req.user && material.uploadedBy && material.uploadedBy._id.toString() === req.user.id;
     const canAccess = material.visibility === 'public' || (req.user && (req.user.role === 'admin' || isOwner));
-
     if (!canAccess) {
-      return res.status(403).json({ message: 'You do not have permission to access this file.' });
+      return res.status(403).json({ message: 'You do not have permission to access this material.' });
     }
 
     res.json({ material });
@@ -95,7 +77,6 @@ export const getMaterialById = async (req, res) => {
 export const updateMaterial = async (req, res) => {
   try {
     const material = await Material.findById(req.params.id);
-
     if (!material) {
       return res.status(404).json({ message: 'Material not found' });
     }
@@ -104,15 +85,12 @@ export const updateMaterial = async (req, res) => {
       return res.status(403).json({ message: 'You can only update your own materials.' });
     }
 
-    const { title, subject, description, visibility } = req.body;
-
+    const { title, subject, description } = req.body;
     if (title) material.title = title;
     if (subject) material.subject = subject;
     if (description) material.description = description;
-    if (visibility) material.visibility = visibility;
 
     await material.save();
-
     res.json({ message: 'Material updated successfully', material });
   } catch (error) {
     res.status(500).json({ message: error.message || 'Unable to update material' });
@@ -122,7 +100,6 @@ export const updateMaterial = async (req, res) => {
 export const deleteMaterial = async (req, res) => {
   try {
     const material = await Material.findById(req.params.id);
-
     if (!material) {
       return res.status(404).json({ message: 'Material not found' });
     }
@@ -132,7 +109,6 @@ export const deleteMaterial = async (req, res) => {
     }
 
     await material.deleteOne();
-
     res.json({ message: 'Material deleted successfully' });
   } catch (error) {
     res.status(500).json({ message: error.message || 'Unable to delete material' });
@@ -141,10 +117,7 @@ export const deleteMaterial = async (req, res) => {
 
 export const getMyMaterials = async (req, res) => {
   try {
-    const materials = await Material.find({ uploadedBy: req.user.id })
-      .populate('uploadedBy', 'name email role')
-      .sort({ createdAt: -1 });
-
+    const materials = await Material.find({ uploadedBy: req.user.id }).sort({ createdAt: -1 });
     res.json({ materials });
   } catch (error) {
     res.status(500).json({ message: error.message || 'Unable to fetch your materials' });

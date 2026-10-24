@@ -10,14 +10,12 @@ export const registerUser = async (req, res) => {
       return res.status(400).json({ message: 'Name, email and password are required.' });
     }
 
-    const existingUser = await User.findOne({ email: email.toLowerCase() });
-
-    if (existingUser) {
+    const exists = await User.findOne({ email: email.toLowerCase() });
+    if (exists) {
       return res.status(400).json({ message: 'User already exists.' });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-
     const user = await User.create({
       name,
       email: email.toLowerCase(),
@@ -27,12 +25,7 @@ export const registerUser = async (req, res) => {
 
     res.status(201).json({
       message: 'User registered successfully',
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-      },
+      user: { id: user._id, name: user.name, email: user.email, role: user.role },
       token: generateToken(user),
     });
   } catch (error) {
@@ -43,31 +36,23 @@ export const registerUser = async (req, res) => {
 export const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
-
     if (!email || !password) {
       return res.status(400).json({ message: 'Email and password are required.' });
     }
 
     const user = await User.findOne({ email: email.toLowerCase() });
-
     if (!user) {
       return res.status(401).json({ message: 'Invalid email or password.' });
     }
 
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-
-    if (!isPasswordValid) {
+    const isValid = await bcrypt.compare(password, user.password);
+    if (!isValid) {
       return res.status(401).json({ message: 'Invalid email or password.' });
     }
 
-    res.json({
+    return res.json({
       message: 'Login successful',
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-      },
+      user: { id: user._id, name: user.name, email: user.email, role: user.role },
       token: generateToken(user),
     });
   } catch (error) {
@@ -78,13 +63,11 @@ export const loginUser = async (req, res) => {
 export const getCurrentUser = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select('-password');
-
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
-
     res.json({ user });
   } catch (error) {
-    res.status(500).json({ message: error.message || 'Unable to fetch profile' });
+    res.status(500).json({ message: error.message || 'Unable to fetch user' });
   }
 };

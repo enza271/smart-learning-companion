@@ -1,11 +1,11 @@
 import { Navigate, Outlet } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from './AuthContext';
 
 const ProtectedRoute = ({ allowedRoles = [] }) => {
   const { user, loading } = useAuth();
 
   if (loading) {
-    return <div className="text-center my-5">Loading...</div>;
+    return <div className="container py-5 text-center">Loading...</div>;
   }
 
   if (!user) {

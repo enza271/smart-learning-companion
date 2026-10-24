@@ -6,7 +6,7 @@ export const getAllUsers = async (req, res) => {
     const users = await User.find({}).select('-password').sort({ createdAt: -1 });
     res.json({ users });
   } catch (error) {
-    res.status(500).json({ message: error.message || 'Unable to fetch users' });
+    res.status(500).json({ message: error.message || 'Unable to load users' });
   }
 };
 
@@ -17,28 +17,31 @@ export const getAdminDashboard = async (req, res) => {
       Material.countDocuments(),
     ]);
 
-    res.json({
-      stats: {
-        users,
-        materials,
-      },
-    });
+    res.json({ stats: { users, materials } });
   } catch (error) {
     res.status(500).json({ message: error.message || 'Unable to load admin dashboard' });
   }
 };
 
-export const deleteUser = async (req, res) => {
+export const getAdminMaterials = async (req, res) => {
   try {
-    const user = await User.findById(req.params.id);
+    const materials = await Material.find({}).populate('uploadedBy', 'name email role').sort({ createdAt: -1 });
+    res.json({ materials });
+  } catch (error) {
+    res.status(500).json({ message: error.message || 'Unable to load materials' });
+  }
+};
 
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+export const removeMaterialByAdmin = async (req, res) => {
+  try {
+    const material = await Material.findById(req.params.id);
+    if (!material) {
+      return res.status(404).json({ message: 'Material not found' });
     }
 
-    await user.deleteOne();
-    res.json({ message: 'User deleted successfully' });
+    await material.deleteOne();
+    res.json({ message: 'Material removed by admin' });
   } catch (error) {
-    res.status(500).json({ message: error.message || 'Unable to delete user' });
+    res.status(500).json({ message: error.message || 'Unable to remove material' });
   }
 };

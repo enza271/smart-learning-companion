@@ -2,25 +2,22 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-export default function LoginPage() {
+const LoginPage = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
   const [form, setForm] = useState({ email: '', password: '' });
-  const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
-  const handleChange = (event) => {
-    setForm({ ...form, [event.target.name]: event.target.value });
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-    setMessage('');
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     setError('');
 
     try {
-      const response = await login(form.email, form.password);
-      setMessage(response.message || 'Login successful');
+      await login(form.email, form.password);
       navigate('/dashboard');
     } catch (err) {
       setError(err.response?.data?.message || 'Login failed');
@@ -34,7 +31,6 @@ export default function LoginPage() {
           <div className="card shadow border-0">
             <div className="card-body p-4">
               <h3 className="mb-3">Login</h3>
-              {message && <div className="alert alert-success">{message}</div>}
               {error && <div className="alert alert-danger">{error}</div>}
               <form onSubmit={handleSubmit}>
                 <div className="mb-3">
@@ -54,4 +50,6 @@ export default function LoginPage() {
       </div>
     </div>
   );
-}
+};
+
+export default LoginPage;
