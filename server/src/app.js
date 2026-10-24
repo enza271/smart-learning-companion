@@ -4,6 +4,8 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { connectDB } from './config/db.js';
 import authRoutes from './routes/authRoutes.js';
 import materialRoutes from './routes/materialRoutes.js';
@@ -13,6 +15,9 @@ import adminRoutes from './routes/adminRoutes.js';
 dotenv.config();
 
 const app = express();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const uploadDir = path.join(__dirname, '../uploads');
 
 app.use(
   cors({
@@ -24,6 +29,7 @@ app.use(helmet());
 app.use(morgan('dev'));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
+app.use('/uploads', express.static(uploadDir));
 
 app.use(
   '/api',

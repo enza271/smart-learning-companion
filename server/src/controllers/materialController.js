@@ -9,13 +9,20 @@ export const createMaterial = async (req, res) => {
 
     const { title, subject, description, visibility } = req.body;
 
+    if (!title || !subject || !description) {
+      return res.status(400).json({ message: 'Title, subject and description are required.' });
+    }
+
+    const baseUrl = process.env.BACKEND_URL || 'http://localhost:5000';
+    const fileUrl = `${baseUrl}/uploads/${req.file.filename}`;
+
     const material = await Material.create({
       title,
       subject,
       description,
       uploadedBy: req.user.id,
       fileName: req.file.originalname,
-      fileUrl: `/uploads/${req.file.filename}`,
+      fileUrl,
       mimeType: req.file.mimetype,
       fileSize: req.file.size,
       visibility: visibility || 'public',
@@ -30,17 +37,27 @@ export const createMaterial = async (req, res) => {
 export const getMaterials = async (req, res) => {
   try {
     const { subject, search } = req.query;
-    const filter = {};
+    const baseQuery = req.user
+      ? {
+          $or: [{ visibility: 'public' }, { uploadedBy: req.user.id }],
+        }
+      : { visibility: 'public' };
+
+    const filter = { ...baseQuery };
 
     if (subject) {
       filter.subject = new RegExp(subject, 'i');
     }
 
     if (search) {
-      filter.$or = [
-        { title: new RegExp(search, 'i') },
-        { subject: new RegExp(search, 'i') },
-        { description: new RegExp(search, 'i') },
+      filter.$and = [
+        {
+          $or: [
+            { title: new RegExp(search, 'i') },
+            { subject: new RegExp(search, 'i') },
+            { description: new RegExp(search, 'i') },
+          ],
+        },
       ];
     }
 
@@ -60,6 +77,13 @@ export const getMaterialById = async (req, res) => {
 
     if (!material) {
       return res.status(404).json({ message: 'Material not found' });
+    }
+
+    const isOwner = req.user && material.uploadedBy && material.uploadedBy._id.toString() === req.user.id;
+    const canAccess = material.visibility === 'public' || (req.user && (req.user.role === 'admin' || isOwner));
+
+    if (!canAccess) {
+      return res.status(403).json({ message: 'You do not have permission to access this file.' });
     }
 
     res.json({ material });
@@ -112,5 +136,26 @@ export const deleteMaterial = async (req, res) => {
     res.json({ message: 'Material deleted successfully' });
   } catch (error) {
     res.status(500).json({ message: error.message || 'Unable to delete material' });
+  }
+};
+
+export const getMyMaterials = async (req, res) => {
+  try {
+    const materials = await Material.find({ uploadedBy: req.user.id })
+      .populate('uploadedBy', 'name email role')
+      .sort({ createdAt: -1 });
+
+    res.json({ materials });
+  } catch (error) {
+    res.status(500).json({ message: error.message || 'Unable to fetch your materials' });
+  }
+};
+
+export const getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find({}).select('-password').sort({ createdAt: -1 });
+    res.json({ users });
+  } catch (error) {
+    res.status(500).json({ message: error.message || 'Unable to fetch users' });
   }
 };

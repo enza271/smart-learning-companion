@@ -35,36 +35,15 @@ export default function RegisterPage() {
               <form onSubmit={handleSubmit}>
                 <div className="mb-3">
                   <label className="form-label">Full Name</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    name="name"
-                    value={form.name}
-                    onChange={handleChange}
-                    required
-                  />
+                  <input type="text" className="form-control" name="name" value={form.name} onChange={handleChange} required />
                 </div>
                 <div className="mb-3">
                   <label className="form-label">Email</label>
-                  <input
-                    type="email"
-                    className="form-control"
-                    name="email"
-                    value={form.email}
-                    onChange={handleChange}
-                    required
-                  />
+                  <input type="email" className="form-control" name="email" value={form.email} onChange={handleChange} required />
                 </div>
                 <div className="mb-3">
                   <label className="form-label">Password</label>
-                  <input
-                    type="password"
-                    className="form-control"
-                    name="password"
-                    value={form.password}
-                    onChange={handleChange}
-                    required
-                  />
+                  <input type="password" className="form-control" name="password" value={form.password} onChange={handleChange} required />
                 </div>
                 <div className="mb-3">
                   <label className="form-label">Role</label>
@@ -74,13 +53,9 @@ export default function RegisterPage() {
                     <option value="admin">Admin</option>
                   </select>
                 </div>
-                <button type="submit" className="btn btn-success w-100">
-                  Create Account
-                </button>
+                <button type="submit" className="btn btn-success w-100">Create Account</button>
               </form>
-              <p className="mt-3 mb-0 text-center">
-                Already have an account? <Link to="/login">Login</Link>
-              </p>
+              <p className="mt-3 text-center mb-0">Already have an account? <Link to="/login">Login</Link></p>
             </div>
           </div>
         </div>
